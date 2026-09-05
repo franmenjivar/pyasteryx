@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+type: software
+title: pyasteryx
+abstract: >-
+  A fast, dependency-free, specification-driven decoder for EUROCONTROL ASTERIX
+  surveillance data, with first-class support for CAT062 system tracks. Reads
+  raw bytes, binary files, pcap captures and live UDP/multicast feeds, and
+  presents CAT062 records in engineering units with absolute UTC timestamps.
+authors:
+  - family-names: Menjivar
+    given-names: Erick
+    orcid: "https://orcid.org/0009-0008-9056-0701"
+repository-code: "https://github.com/franmenjivar/pyasteryx"
+url: "https://github.com/franmenjivar/pyasteryx"
+license: MIT
+version: 0.3.0
+date-released: "2026-09-05"
+keywords:
+  - ASTERIX
+  - EUROCONTROL
+  - CAT062
+  - air traffic management
+  - surveillance
+  - system track
+  - radar
+  - ADS-B
+  - aviation
+  - Python

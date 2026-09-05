@@ -1,5 +1,9 @@
 # pyasteryx
 
+[![CI](https://github.com/franmenjivar/pyasteryx/actions/workflows/ci.yml/badge.svg)](https://github.com/franmenjivar/pyasteryx/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://pypi.org/project/pyasteryx/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 A fast, dependency-free, **specification-driven** decoder for EUROCONTROL
 **ASTERIX** surveillance data — built for Air Traffic Management research,
 surveillance analytics and big-data (PySpark/Arrow) processing, with
@@ -462,6 +466,26 @@ ruff check .
 
 No GUI, no visualization, no ATM algorithms. pyasteryx focuses on decoding,
 parsing, streaming, exporting and interoperability.
+
+## Contributing
+
+Every change lands through a pull request from a topic branch; `main` is always
+releasable. Branch naming, the local check loop and the release process are in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Citing
+
+If you use pyasteryx in research, please cite it. GitHub reads
+[`CITATION.cff`](CITATION.cff) and offers a formatted citation under
+**Cite this repository** on the repository page.
+
+```
+Menjivar, E. (2026). pyasteryx (version 0.3.0).
+https://github.com/franmenjivar/pyasteryx
+```
+
+Each release is archived on Zenodo with its own DOI, so you can cite the exact
+version you ran.
 
 ## License
 
