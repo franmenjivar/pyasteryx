@@ -15,15 +15,13 @@ A set presence bit means the corresponding data item is present in the record.
 
 from __future__ import annotations
 
-from typing import List
-
 from pyasteryx.exceptions import InvalidFspecError, TruncatedMessageError
 
 # A sane cap: 7 FRNs per octet, so this allows well over a thousand items.
 _MAX_FSPEC_OCTETS = 32
 
 
-def parse_fspec(data: memoryview, offset: int, limit: int) -> tuple[List[int], int]:
+def parse_fspec(data: memoryview, offset: int, limit: int) -> tuple[list[int], int]:
     """Parse the FSPEC starting at ``offset``.
 
     Args:
@@ -43,7 +41,7 @@ def parse_fspec(data: memoryview, offset: int, limit: int) -> tuple[List[int], i
         InvalidFspecError: If the FSPEC does not terminate within a sane number
             of octets.
     """
-    frns: List[int] = []
+    frns: list[int] = []
     pos = offset
 
     for octet_index in range(_MAX_FSPEC_OCTETS):

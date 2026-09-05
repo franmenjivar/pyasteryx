@@ -17,7 +17,7 @@ from __future__ import annotations
 import errno
 import socket
 import struct
-from typing import Iterator, Optional
+from collections.abc import Iterator
 
 from pyasteryx.exceptions import AsteryxError
 
@@ -36,10 +36,10 @@ class NetworkError(AsteryxError):
 
 def open_udp_socket(
     port: int,
-    group: Optional[str] = None,
+    group: str | None = None,
     bind: str = "",
     iface: str = "0.0.0.0",
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     recv_buffer: int = _DEFAULT_RECV_BUFFER,
     reuse_port: bool = True,
 ) -> socket.socket:
@@ -105,11 +105,11 @@ def open_udp_socket(
 
 def iter_udp(
     port: int,
-    group: Optional[str] = None,
+    group: str | None = None,
     bind: str = "",
     iface: str = "0.0.0.0",
-    timeout: Optional[float] = None,
-    max_datagrams: Optional[int] = None,
+    timeout: float | None = None,
+    max_datagrams: int | None = None,
     recv_buffer: int = _DEFAULT_RECV_BUFFER,
 ) -> Iterator[bytes]:
     """Yield the payload of every datagram arriving on a UDP feed.
@@ -153,7 +153,7 @@ def iter_udp(
         while max_datagrams is None or count < max_datagrams:
             try:
                 payload = sock.recv(_MAX_DATAGRAM)
-            except socket.timeout:
+            except TimeoutError:
                 return
             except OSError as exc:
                 if exc.errno in (errno.EBADF, errno.EINTR):
@@ -170,8 +170,8 @@ def iter_multicast(
     group: str,
     port: int,
     iface: str = "0.0.0.0",
-    timeout: Optional[float] = None,
-    max_datagrams: Optional[int] = None,
+    timeout: float | None = None,
+    max_datagrams: int | None = None,
     recv_buffer: int = _DEFAULT_RECV_BUFFER,
 ) -> Iterator[bytes]:
     """Yield datagram payloads from an IP multicast feed.

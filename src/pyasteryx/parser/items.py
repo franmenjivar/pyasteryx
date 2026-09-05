@@ -14,7 +14,7 @@ Performance notes:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from pyasteryx.exceptions import InvalidLengthError, TruncatedMessageError
 from pyasteryx.spec.model import (
@@ -48,7 +48,7 @@ def _decode_sixbit(value: int, width: int) -> str:
     return "".join(chars).rstrip()
 
 
-def _extract_fields(fields: Tuple[FieldSpec, ...], raw: int, out: Dict[str, Any]) -> None:
+def _extract_fields(fields: tuple[FieldSpec, ...], raw: int, out: dict[str, Any]) -> None:
     """Extract each field from ``raw`` (big-endian integer) into ``out``."""
     for f in fields:
         width = f.bit_from - f.bit_to + 1
@@ -75,7 +75,9 @@ def _extract_fields(fields: Tuple[FieldSpec, ...], raw: int, out: Dict[str, Any]
         out[f.name] = value
 
 
-def _decode_fixed(item: ItemSpec, data: memoryview, offset: int, limit: int) -> Tuple[Dict[str, Any], int]:
+def _decode_fixed(
+    item: ItemSpec, data: memoryview, offset: int, limit: int
+) -> tuple[dict[str, Any], int]:
     end = offset + item.length
     if end > limit:
         raise TruncatedMessageError(
@@ -83,13 +85,15 @@ def _decode_fixed(item: ItemSpec, data: memoryview, offset: int, limit: int) -> 
             f"only {limit - offset} available"
         )
     raw = int.from_bytes(data[offset:end], "big")
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     _extract_fields(item.fields, raw, out)
     return out, end
 
 
-def _decode_extended(item: ItemSpec, data: memoryview, offset: int, limit: int) -> Tuple[Dict[str, Any], int]:
-    out: Dict[str, Any] = {}
+def _decode_extended(
+    item: ItemSpec, data: memoryview, offset: int, limit: int
+) -> tuple[dict[str, Any], int]:
+    out: dict[str, Any] = {}
     parts = item.parts
     n = len(parts)
     pos = offset
@@ -114,14 +118,16 @@ def _decode_extended(item: ItemSpec, data: memoryview, offset: int, limit: int) 
     return out, pos
 
 
-def _decode_repetitive(item: ItemSpec, data: memoryview, offset: int, limit: int) -> Tuple[List[Dict[str, Any]], int]:
+def _decode_repetitive(
+    item: ItemSpec, data: memoryview, offset: int, limit: int
+) -> tuple[list[dict[str, Any]], int]:
     if offset >= limit:
         raise TruncatedMessageError(
             f"Repetitive item {item.item_id} has no REP octet at offset {offset}"
         )
     rep = data[offset]
     pos = offset + 1
-    blocks: List[Dict[str, Any]] = []
+    blocks: list[dict[str, Any]] = []
 
     for _ in range(rep):
         end = pos + item.length
@@ -131,7 +137,7 @@ def _decode_repetitive(item: ItemSpec, data: memoryview, offset: int, limit: int
                 f"at offset {pos}, only {limit - pos} available"
             )
         raw = int.from_bytes(data[pos:end], "big")
-        block: Dict[str, Any] = {}
+        block: dict[str, Any] = {}
         _extract_fields(item.fields, raw, block)
         blocks.append(block)
         pos = end
@@ -139,10 +145,12 @@ def _decode_repetitive(item: ItemSpec, data: memoryview, offset: int, limit: int
     return blocks, pos
 
 
-def _decode_compound(item: ItemSpec, data: memoryview, offset: int, limit: int) -> Tuple[Dict[str, Any], int]:
+def _decode_compound(
+    item: ItemSpec, data: memoryview, offset: int, limit: int
+) -> tuple[dict[str, Any], int]:
     # Primary subfield: an extended-style bitmap selecting which subfields follow.
     subfields = item.subfields
-    present: List[bool] = []
+    present: list[bool] = []
     pos = offset
 
     while True:
@@ -157,7 +165,7 @@ def _decode_compound(item: ItemSpec, data: memoryview, offset: int, limit: int) 
         if not (octet & 0x01):
             break
 
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for index, is_present in enumerate(present):
         if not is_present:
             continue
@@ -173,7 +181,9 @@ def _decode_compound(item: ItemSpec, data: memoryview, offset: int, limit: int) 
     return out, pos
 
 
-def _decode_explicit(item: ItemSpec, data: memoryview, offset: int, limit: int) -> Tuple[Dict[str, Any], int]:
+def _decode_explicit(
+    item: ItemSpec, data: memoryview, offset: int, limit: int
+) -> tuple[dict[str, Any], int]:
     # Length-prefixed opaque block: first octet is the total length (inclusive).
     if offset >= limit:
         raise TruncatedMessageError(
@@ -200,7 +210,7 @@ _DISPATCH = {
 }
 
 
-def decode_item(item: ItemSpec, data: memoryview, offset: int, limit: int) -> Tuple[Any, int]:
+def decode_item(item: ItemSpec, data: memoryview, offset: int, limit: int) -> tuple[Any, int]:
     """Decode one data item, returning ``(value, new_offset)``.
 
     Args:

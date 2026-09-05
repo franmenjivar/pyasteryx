@@ -14,11 +14,11 @@ avoids per-field object allocation on the hot path.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 # A decoded data item is a mapping of field-name -> value, or a list of those
 # (repetitive items). Values are builtins: int, float, str, bool.
-ItemValue = Dict[str, Any]
+ItemValue = dict[str, Any]
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,7 +32,7 @@ class Message:
     """
 
     category: int
-    items: Dict[str, Any] = field(default_factory=dict)
+    items: dict[str, Any] = field(default_factory=dict)
 
     def __getitem__(self, item_id: str) -> Any:
         return self.items[item_id]
@@ -44,20 +44,20 @@ class Message:
         """Return the decoded value for ``item_id`` or ``default`` if absent."""
         return self.items.get(item_id, default)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a flat, JSON-serialisable dict representation of the record.
 
         Keys are dotted paths: ``"I021/010.SAC"`` for a field, and for compound
         items the nesting continues (``"I062/110.SUM.M5"``). Repetitive items keep
         their list value under the bare item id.
         """
-        out: Dict[str, Any] = {"category": self.category}
+        out: dict[str, Any] = {"category": self.category}
         for item_id, value in self.items.items():
             _flatten(item_id, value, out)
         return out
 
 
-def _flatten(prefix: str, value: Any, out: Dict[str, Any]) -> None:
+def _flatten(prefix: str, value: Any, out: dict[str, Any]) -> None:
     """Recursively flatten nested dicts into dotted keys; leave lists intact."""
     if isinstance(value, dict):
         for key, sub in value.items():

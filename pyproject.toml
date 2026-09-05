@@ -62,7 +62,7 @@ spark = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    "ruff>=0.1",
+    "ruff>=0.16,<0.17",
     "mypy>=1.5",
     "pandas>=1.5",
     "pyarrow>=12.0",
@@ -89,6 +89,19 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
+# target-version is inferred from project.requires-python (3.10).
+
+[tool.ruff.lint]
+# Selected explicitly rather than relying on ruff's defaults, which shift
+# between releases and would otherwise fail CI on an unrelated ruff upgrade.
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade: keep annotations on the 3.10+ baseline
+]
 
 [tool.mypy]
 python_version = "3.10"

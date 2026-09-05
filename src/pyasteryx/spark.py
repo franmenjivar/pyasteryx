@@ -18,15 +18,16 @@ Design:
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union
+from collections.abc import Iterable, Iterator
+from typing import Any
 
 from pyasteryx.decoder import Decoder
 from pyasteryx.exceptions import DecodeError
 
-RawBytes = Union[bytes, bytearray, memoryview]
+RawBytes = bytes | bytearray | memoryview
 
 
-def decode_records(raw: Optional[RawBytes], decoder: Decoder) -> List[Dict[str, Any]]:
+def decode_records(raw: RawBytes | None, decoder: Decoder) -> list[dict[str, Any]]:
     """Decode one raw ASTERIX buffer into a list of flat dict rows.
 
     Never raises: a malformed/empty buffer yields an empty list, which keeps a
@@ -45,8 +46,8 @@ def decode_records(raw: Optional[RawBytes], decoder: Decoder) -> List[Dict[str, 
 def decode_partition(
     rows: Iterable[Any],
     column: str,
-    editions: Optional[Dict[int, str]] = None,
-) -> Iterator[Dict[str, Any]]:
+    editions: dict[int, str] | None = None,
+) -> Iterator[dict[str, Any]]:
     """Decode a partition of Spark ``Row``s, yielding one flat dict per record.
 
     Build for ``rdd.mapPartitions`` / ``df.rdd.mapPartitions``::
@@ -63,7 +64,7 @@ def decode_partition(
         yield from decode_records(raw, decoder)
 
 
-def asterix_decode_udf(editions: Optional[Dict[int, str]] = None):
+def asterix_decode_udf(editions: dict[int, str] | None = None):
     """Return a vectorized ``pandas_udf`` mapping a ``binary`` column to JSON.
 
     The returned UDF takes a column whose each value is a raw ASTERIX buffer and
@@ -89,7 +90,7 @@ def asterix_decode_udf(editions: Optional[Dict[int, str]] = None):
     decoder = Decoder(editions=editions)
 
     @pandas_udf(StringType())
-    def _decode(batch: "pd.Series") -> "pd.Series":
+    def _decode(batch: pd.Series) -> pd.Series:
         return pd.Series([json.dumps(decode_records(raw, decoder)) for raw in batch])
 
     return _decode

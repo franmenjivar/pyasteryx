@@ -27,9 +27,10 @@ Example::
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple
+from typing import Any
 
 from pyasteryx.enums import describe
 from pyasteryx.models import Message
@@ -47,6 +48,10 @@ _MS_TO_KT = 3600.0 / 1852.0
 # hundreds of feet.
 _FT_PER_FL = 100.0
 
+# I062/290 subfields that name a contributing sensor. TRK is excluded: it is the
+# age of the track itself, not of a sensor update.
+_SENSOR_SUBFIELDS = ("PSR", "SSR", "MDS", "ADS", "ES", "VDL", "UAT", "LOP", "MLT")
+
 
 @dataclass(frozen=True, slots=True)
 class Track:
@@ -63,28 +68,28 @@ class Track:
     """
 
     message: Message
-    day: Optional[date] = None
+    day: date | None = None
 
     # -- Identity ----------------------------------------------------------
 
     @property
-    def sac(self) -> Optional[int]:
+    def sac(self) -> int | None:
         """System Area Code of the emitting system (I062/010)."""
         return self._field("I062/010", "SAC")
 
     @property
-    def sic(self) -> Optional[int]:
+    def sic(self) -> int | None:
         """System Identification Code of the emitting system (I062/010)."""
         return self._field("I062/010", "SIC")
 
     @property
-    def source(self) -> Optional[Tuple[int, int]]:
+    def source(self) -> tuple[int, int] | None:
         """``(SAC, SIC)`` of the emitting system, or ``None``."""
         sac, sic = self.sac, self.sic
         return None if sac is None or sic is None else (sac, sic)
 
     @property
-    def track_number(self) -> Optional[int]:
+    def track_number(self) -> int | None:
         """Track number assigned by the tracker (I062/040).
 
         This is the key you group on to reconstruct a trajectory. It is unique
@@ -94,7 +99,7 @@ class Track:
         return self._field("I062/040", "TrkN")
 
     @property
-    def callsign(self) -> Optional[str]:
+    def callsign(self) -> str | None:
         """Target identification / callsign (I062/380 ID), trailing blanks stripped."""
         value = self._sub("I062/380", "ID", "ACID")
         if isinstance(value, str):
@@ -103,17 +108,17 @@ class Track:
         return None
 
     @property
-    def address(self) -> Optional[str]:
+    def address(self) -> str | None:
         """24-bit ICAO aircraft address as uppercase hex (I062/380 ADR)."""
         return self._sub("I062/380", "ADR", "ADR")
 
     @property
-    def mode_3a(self) -> Optional[str]:
+    def mode_3a(self) -> str | None:
         """Mode 3/A squawk as a 4-digit octal string (I062/060)."""
         return self._field("I062/060", "Mode3A")
 
     @property
-    def mode_3a_valid(self) -> Optional[bool]:
+    def mode_3a_valid(self) -> bool | None:
         """Whether the Mode 3/A code was validated (I062/060 V == 0)."""
         v = self._field("I062/060", "V")
         return None if v is None else v == 0
@@ -121,12 +126,12 @@ class Track:
     # -- Time --------------------------------------------------------------
 
     @property
-    def time_of_track(self) -> Optional[float]:
+    def time_of_track(self) -> float | None:
         """Time of track information, in seconds since midnight UTC (I062/070)."""
         return self._field("I062/070", "ToT")
 
     @property
-    def timestamp(self) -> Optional[datetime]:
+    def timestamp(self) -> datetime | None:
         """Absolute UTC datetime, or ``None`` if :attr:`day` was not supplied.
 
         ASTERIX carries no date, so this needs the recording's UTC day. Pass it
@@ -141,23 +146,23 @@ class Track:
     # -- Position ----------------------------------------------------------
 
     @property
-    def latitude(self) -> Optional[float]:
+    def latitude(self) -> float | None:
         """WGS-84 latitude in degrees (I062/105)."""
         return self._field("I062/105", "Lat")
 
     @property
-    def longitude(self) -> Optional[float]:
+    def longitude(self) -> float | None:
         """WGS-84 longitude in degrees (I062/105)."""
         return self._field("I062/105", "Lon")
 
     @property
-    def position(self) -> Optional[Tuple[float, float]]:
+    def position(self) -> tuple[float, float] | None:
         """``(latitude, longitude)`` in degrees, or ``None`` if not in this record."""
         lat, lon = self.latitude, self.longitude
         return None if lat is None or lon is None else (lat, lon)
 
     @property
-    def cartesian(self) -> Optional[Tuple[float, float]]:
+    def cartesian(self) -> tuple[float, float] | None:
         """``(x, y)`` position in metres in the system cartesian frame (I062/100)."""
         x = self._field("I062/100", "X")
         y = self._field("I062/100", "Y")
@@ -166,42 +171,42 @@ class Track:
     # -- Altitude ----------------------------------------------------------
 
     @property
-    def measured_altitude_ft(self) -> Optional[float]:
+    def measured_altitude_ft(self) -> float | None:
         """Last measured barometric altitude in feet (I062/136)."""
         return self._field("I062/136", "MFL")
 
     @property
-    def flight_level(self) -> Optional[float]:
+    def flight_level(self) -> float | None:
         """Last measured barometric altitude expressed as a flight level (I062/136)."""
         alt = self.measured_altitude_ft
         return None if alt is None else alt / _FT_PER_FL
 
     @property
-    def geometric_altitude_ft(self) -> Optional[float]:
+    def geometric_altitude_ft(self) -> float | None:
         """Geometric (GNSS) altitude in feet (I062/130)."""
         return self._field("I062/130", "Alt")
 
     @property
-    def selected_altitude_ft(self) -> Optional[float]:
+    def selected_altitude_ft(self) -> float | None:
         """Selected / target altitude in feet from aircraft-derived data (I062/380 SAL)."""
         return self._sub("I062/380", "SAL", "Alt")
 
     @property
-    def barometric_pressure_setting(self) -> Optional[float]:
+    def barometric_pressure_setting(self) -> float | None:
         """Barometric pressure setting in mb, offset from 800 mb (I062/380 BPS)."""
         return self._sub("I062/380", "BPS", "BPS")
 
     # -- Motion ------------------------------------------------------------
 
     @property
-    def velocity_ms(self) -> Optional[Tuple[float, float]]:
+    def velocity_ms(self) -> tuple[float, float] | None:
         """``(Vx, Vy)`` cartesian velocity in metres per second (I062/185)."""
         vx = self._field("I062/185", "Vx")
         vy = self._field("I062/185", "Vy")
         return None if vx is None or vy is None else (vx, vy)
 
     @property
-    def ground_speed_kt(self) -> Optional[float]:
+    def ground_speed_kt(self) -> float | None:
         """Ground speed in knots.
 
         Prefers the aircraft-derived value (I062/380 GSP) when present, otherwise
@@ -216,7 +221,7 @@ class Track:
         return math.hypot(velocity[0], velocity[1]) * _MS_TO_KT
 
     @property
-    def track_angle_deg(self) -> Optional[float]:
+    def track_angle_deg(self) -> float | None:
         """Track angle in degrees true, in ``[0, 360)``.
 
         Prefers the aircraft-derived true track angle (I062/380 TAN), otherwise
@@ -235,13 +240,13 @@ class Track:
         return math.degrees(math.atan2(vx, vy)) % 360.0
 
     @property
-    def magnetic_heading_deg(self) -> Optional[float]:
+    def magnetic_heading_deg(self) -> float | None:
         """Magnetic heading in degrees (I062/380 MHG)."""
         mah = self._sub("I062/380", "MHG", "MAH")
         return None if mah is None else mah % 360.0
 
     @property
-    def vertical_rate_fpm(self) -> Optional[float]:
+    def vertical_rate_fpm(self) -> float | None:
         """Rate of climb/descent in feet per minute.
 
         Prefers the calculated value (I062/220), falling back to the
@@ -256,76 +261,76 @@ class Track:
         return self._sub("I062/380", "GVR", "GVR")
 
     @property
-    def indicated_airspeed(self) -> Optional[float]:
+    def indicated_airspeed(self) -> float | None:
         """Indicated airspeed (I062/380 IAS); units depend on the IM flag."""
         return self._sub("I062/380", "IAS", "AS")
 
     @property
-    def true_airspeed_kt(self) -> Optional[float]:
+    def true_airspeed_kt(self) -> float | None:
         """True airspeed in knots (I062/380 TAS)."""
         return self._sub("I062/380", "TAS", "TAS")
 
     @property
-    def mach(self) -> Optional[float]:
+    def mach(self) -> float | None:
         """Mach number (I062/380 MAC)."""
         return self._sub("I062/380", "MAC", "MNO")
 
     @property
-    def rate_of_turn(self) -> Optional[float]:
+    def rate_of_turn(self) -> float | None:
         """Rate of turn in degrees per second (I062/380 TAR)."""
         return self._sub("I062/380", "TAR", "RoT")
 
     # -- Lifecycle and status ----------------------------------------------
 
     @property
-    def is_first_report(self) -> Optional[bool]:
+    def is_first_report(self) -> bool | None:
         """First report of this track (I062/080 TSB) — the track was just created."""
         return self._flag("I062/080", "TSB")
 
     @property
-    def is_last_report(self) -> Optional[bool]:
+    def is_last_report(self) -> bool | None:
         """Last report of this track (I062/080 TSE) — the track number is now free."""
         return self._flag("I062/080", "TSE")
 
     @property
-    def is_confirmed(self) -> Optional[bool]:
+    def is_confirmed(self) -> bool | None:
         """Confirmed track, as opposed to one still in initialisation (I062/080 CNF)."""
         cnf = self._field("I062/080", "CNF")
         return None if cnf is None else cnf == 0
 
     @property
-    def is_simulated(self) -> Optional[bool]:
+    def is_simulated(self) -> bool | None:
         """Simulated rather than live track (I062/080 SIM)."""
         return self._flag("I062/080", "SIM")
 
     @property
-    def is_monosensor(self) -> Optional[bool]:
+    def is_monosensor(self) -> bool | None:
         """Track maintained from a single sensor (I062/080 MON)."""
         return self._flag("I062/080", "MON")
 
     @property
-    def is_coasting(self) -> Optional[bool]:
+    def is_coasting(self) -> bool | None:
         """No fresh position: the age of at least one position exceeds the system
         threshold (I062/080 CST)."""
         return self._flag("I062/080", "CST")
 
     @property
-    def on_ground(self) -> Optional[bool]:
+    def on_ground(self) -> bool | None:
         """Surface target (I062/080 SFC)."""
         return self._flag("I062/080", "SFC")
 
     @property
-    def spi(self) -> Optional[bool]:
+    def spi(self) -> bool | None:
         """Special Position Identification active (I062/080 SPI)."""
         return self._flag("I062/080", "SPI")
 
     @property
-    def flight_plan_correlated(self) -> Optional[bool]:
+    def flight_plan_correlated(self) -> bool | None:
         """Track correlated to a flight plan (I062/080 FPC)."""
         return self._flag("I062/080", "FPC")
 
     @property
-    def emergency(self) -> Optional[str]:
+    def emergency(self) -> str | None:
         """Emergency status as text (I062/080 EMS), ``None`` when not emergency.
 
         Returns ``None`` both when the field is absent and when it reads
@@ -337,32 +342,32 @@ class Track:
         return describe(CAT062, "I062/080", "EMS", ems)
 
     @property
-    def altitude_source(self) -> Optional[str]:
+    def altitude_source(self) -> str | None:
         """Where the track's altitude came from, as text (I062/080 SRC)."""
         return describe(CAT062, "I062/080", "SRC", self._field("I062/080", "SRC"))
 
     @property
-    def vertical_mode(self) -> Optional[str]:
+    def vertical_mode(self) -> str | None:
         """Vertical mode of movement as text: level / climb / descent (I062/200 VERTA)."""
         return describe(CAT062, "I062/200", "VERTA", self._field("I062/200", "VERTA"))
 
     @property
-    def transversal_mode(self) -> Optional[str]:
+    def transversal_mode(self) -> str | None:
         """Transversal mode of movement as text: straight / left / right (I062/200 TRANSA)."""
         return describe(CAT062, "I062/200", "TRANSA", self._field("I062/200", "TRANSA"))
 
     @property
-    def longitudinal_mode(self) -> Optional[str]:
+    def longitudinal_mode(self) -> str | None:
         """Longitudinal acceleration mode as text (I062/200 LONGA)."""
         return describe(CAT062, "I062/200", "LONGA", self._field("I062/200", "LONGA"))
 
     @property
-    def emitter_category(self) -> Optional[str]:
+    def emitter_category(self) -> str | None:
         """Aircraft emitter category as text (I062/380 EMC)."""
         return describe(CAT062, "I062/380", "ECAT", self._sub("I062/380", "EMC", "ECAT"))
 
     @property
-    def contributing_sensors(self) -> Tuple[str, ...]:
+    def contributing_sensors(self) -> tuple[str, ...]:
         """Sensor types that have contributed an update, from the track ages (I062/290).
 
         Returns a tuple such as ``("SSR", "MDS", "ADS")``. Empty when I062/290 is
@@ -371,15 +376,15 @@ class Track:
         ages = self.message.get("I062/290")
         if not isinstance(ages, dict):
             return ()
-        return tuple(key for key in ("PSR", "SSR", "MDS", "ADS", "ES", "VDL", "UAT", "LOP", "MLT") if key in ages)
+        return tuple(key for key in _SENSOR_SUBFIELDS if key in ages)
 
     @property
-    def update_ages(self) -> Dict[str, float]:
+    def update_ages(self) -> dict[str, float]:
         """Per-sensor age of the last contributing update, in seconds (I062/290)."""
         ages = self.message.get("I062/290")
         if not isinstance(ages, dict):
             return {}
-        out: Dict[str, float] = {}
+        out: dict[str, float] = {}
         for key, value in ages.items():
             if isinstance(value, dict) and key in value:
                 out[key] = value[key]
@@ -387,7 +392,7 @@ class Track:
 
     # -- Conversion --------------------------------------------------------
 
-    def to_dict(self, include_raw: bool = False) -> Dict[str, Any]:
+    def to_dict(self, include_raw: bool = False) -> dict[str, Any]:
         """Return a flat row of the named, physical-units attributes.
 
         This is the shape you want in a DataFrame: stable column names,
@@ -397,7 +402,7 @@ class Track:
             include_raw: Also merge in the raw dotted item/field keys from
                 :meth:`Message.to_dict`, for fields this view does not surface.
         """
-        row: Dict[str, Any] = {
+        row: dict[str, Any] = {
             "timestamp": self.timestamp,
             "time_of_track": self.time_of_track,
             "sac": self.sac,
@@ -470,7 +475,7 @@ class Track:
             return sub.get(name)
         return None
 
-    def _flag(self, item_id: str, name: str) -> Optional[bool]:
+    def _flag(self, item_id: str, name: str) -> bool | None:
         """Return a one-bit field as a bool, or ``None`` if absent."""
         value = self._field(item_id, name)
         return None if value is None else bool(value)
@@ -478,7 +483,7 @@ class Track:
 
 def tracks(
     messages: Iterable[Message],
-    day: Optional[date] = None,
+    day: date | None = None,
     resolve_day: bool = False,
 ) -> Iterator[Track]:
     """Wrap every CAT062 record in an iterable as a :class:`Track`.
@@ -515,7 +520,7 @@ def tracks(
 def group_by_track(
     items: Iterable[Track],
     by_source: bool = True,
-) -> Dict[Any, List[Track]]:
+) -> dict[Any, list[Track]]:
     """Group tracks into trajectories, keyed by track number.
 
     Args:
@@ -532,7 +537,7 @@ def group_by_track(
         This buffers every record in memory. For a large capture, filter first
         (by time window, region or callsign) or stream into storage instead.
     """
-    out: Dict[Any, List[Track]] = {}
+    out: dict[Any, list[Track]] = {}
     for track in items:
         number = track.track_number
         if number is None:

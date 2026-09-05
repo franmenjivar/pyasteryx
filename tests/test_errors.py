@@ -17,8 +17,10 @@ _GAP_CATEGORY = {
     "name": "Gap test",
     "uap": ["I200/010", None, "I200/030"],
     "items": [
-        {"id": "I200/010", "format": "fixed", "length": 1, "fields": [{"name": "A", "from": 8, "to": 1}]},
-        {"id": "I200/030", "format": "fixed", "length": 1, "fields": [{"name": "C", "from": 8, "to": 1}]},
+        {"id": "I200/010", "format": "fixed", "length": 1,
+         "fields": [{"name": "A", "from": 8, "to": 1}]},
+        {"id": "I200/030", "format": "fixed", "length": 1,
+         "fields": [{"name": "C", "from": 8, "to": 1}]},
     ],
 }
 

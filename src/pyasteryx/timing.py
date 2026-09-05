@@ -20,7 +20,6 @@ of a trajectory.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
-from typing import Optional
 
 __all__ = [
     "SECONDS_PER_DAY",
@@ -84,9 +83,9 @@ class DayResolver:
 
     __slots__ = ("_day", "_last")
 
-    def __init__(self, day: Optional[date] = None) -> None:
+    def __init__(self, day: date | None = None) -> None:
         self._day: date = day if day is not None else datetime.now(timezone.utc).date()
-        self._last: Optional[float] = None
+        self._last: float | None = None
 
     @property
     def day(self) -> date:
@@ -105,7 +104,7 @@ class DayResolver:
         self._last = seconds_since_midnight
         return to_datetime(seconds_since_midnight, self._day)
 
-    def reset(self, day: Optional[date] = None) -> None:
+    def reset(self, day: date | None = None) -> None:
         """Re-anchor the resolver, forgetting the previous time-of-day."""
         if day is not None:
             self._day = day

@@ -21,9 +21,10 @@ import csv
 import json
 import os
 import sys
+from collections.abc import Iterable, Iterator, Sequence
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, TextIO
+from typing import Any, TextIO
 
 from pyasteryx import __version__
 from pyasteryx.decoder import Decoder
@@ -45,9 +46,9 @@ def _json_default(value: Any) -> Any:
     return str(value)
 
 
-def _parse_editions(values: Optional[Sequence[str]]) -> Dict[int, str]:
+def _parse_editions(values: Sequence[str] | None) -> dict[int, str]:
     """Turn ``["62=1.18", "21=2.6"]`` into ``{62: "1.18", 21: "2.6"}``."""
-    editions: Dict[int, str] = {}
+    editions: dict[int, str] = {}
     for raw in values or ():
         category, _, edition = raw.partition("=")
         if not edition:
@@ -55,11 +56,13 @@ def _parse_editions(values: Optional[Sequence[str]]) -> Dict[int, str]:
         try:
             editions[int(category)] = edition
         except ValueError:
-            raise SystemExit(f"pyasteryx: --edition category must be a number, got {category!r}") from None
+            raise SystemExit(
+                f"pyasteryx: --edition category must be a number, got {category!r}"
+            ) from None
     return editions
 
 
-def _parse_endpoint(raw: str) -> tuple[Optional[str], int]:
+def _parse_endpoint(raw: str) -> tuple[str | None, int]:
     """Parse ``"239.1.1.1:8600"`` or a bare ``"8600"`` into ``(group, port)``."""
     group, sep, port_text = raw.rpartition(":")
     if not sep:
@@ -88,8 +91,8 @@ def _read_messages(decoder: Decoder, source: str) -> Iterator[Message]:
 
 def _filtered(
     messages: Iterable[Message],
-    categories: Optional[Sequence[int]],
-    limit: Optional[int],
+    categories: Sequence[int] | None,
+    limit: int | None,
 ) -> Iterator[Message]:
     """Apply the ``--cat`` and ``--limit`` filters to a message stream."""
     wanted = set(categories) if categories else None
@@ -103,7 +106,7 @@ def _filtered(
             return
 
 
-def _open_output(path: Optional[str]) -> TextIO:
+def _open_output(path: str | None) -> TextIO:
     """Return the output stream for ``-o``, defaulting to stdout."""
     if path is None or path == "-":
         return sys.stdout
@@ -113,7 +116,7 @@ def _open_output(path: Optional[str]) -> TextIO:
 # --- writers ------------------------------------------------------------------
 
 
-def _write_jsonl(rows: Iterable[Dict[str, Any]], out: TextIO) -> int:
+def _write_jsonl(rows: Iterable[dict[str, Any]], out: TextIO) -> int:
     count = 0
     for row in rows:
         out.write(json.dumps(row, default=_json_default))
@@ -122,14 +125,14 @@ def _write_jsonl(rows: Iterable[Dict[str, Any]], out: TextIO) -> int:
     return count
 
 
-def _write_json(rows: Iterable[Dict[str, Any]], out: TextIO) -> int:
+def _write_json(rows: Iterable[dict[str, Any]], out: TextIO) -> int:
     materialised = list(rows)
     json.dump(materialised, out, default=_json_default, indent=2)
     out.write("\n")
     return len(materialised)
 
 
-def _write_csv(rows: Iterable[Dict[str, Any]], out: TextIO, columns: Optional[List[str]]) -> int:
+def _write_csv(rows: Iterable[dict[str, Any]], out: TextIO, columns: list[str] | None) -> int:
     """Write CSV. With no fixed ``columns``, the first row defines the header.
 
     Rows are streamed, so a later row carrying a key the first one lacked would
@@ -152,10 +155,10 @@ def _write_csv(rows: Iterable[Dict[str, Any]], out: TextIO, columns: Optional[Li
 
 
 def _write_rows(
-    rows: Iterable[Dict[str, Any]],
+    rows: Iterable[dict[str, Any]],
     fmt: str,
     out: TextIO,
-    columns: Optional[List[str]] = None,
+    columns: list[str] | None = None,
 ) -> int:
     if fmt == "jsonl":
         return _write_jsonl(rows, out)
@@ -188,11 +191,11 @@ def _cmd_info(args: argparse.Namespace) -> int:
 def _cmd_stats(args: argparse.Namespace) -> int:
     """Summarise what a capture contains, without printing every record."""
     decoder = Decoder(editions=_parse_editions(args.edition), on_error="skip")
-    per_category: Dict[int, int] = {}
-    per_source: Dict[tuple, int] = {}
+    per_category: dict[int, int] = {}
+    per_source: dict[tuple, int] = {}
     track_numbers: set = set()
-    first_time: Optional[float] = None
-    last_time: Optional[float] = None
+    first_time: float | None = None
+    last_time: float | None = None
     total = 0
 
     for message in _read_messages(decoder, args.source):
@@ -261,7 +264,7 @@ def _cmd_decode(args: argparse.Namespace) -> int:
 
 #: Stable column order for ``tracks`` output, so CSV headers do not shift
 #: between captures that happen to carry different optional items.
-TRACK_COLUMNS: List[str] = list(Track(Message(62, {})).to_dict().keys())
+TRACK_COLUMNS: list[str] = list(Track(Message(62, {})).to_dict().keys())
 
 
 def _cmd_tracks(args: argparse.Namespace) -> int:
@@ -286,10 +289,10 @@ def _cmd_tracks(args: argparse.Namespace) -> int:
 
 def _track_rows(
     messages: Iterable[Message],
-    day: Optional[date],
+    day: date | None,
     resolve_day: bool,
-    callsign: Optional[str],
-) -> Iterator[Dict[str, Any]]:
+    callsign: str | None,
+) -> Iterator[dict[str, Any]]:
     """Yield flat track rows, optionally keeping only one callsign."""
     wanted = callsign.upper() if callsign else None
     for track in tracks(messages, day=day, resolve_day=resolve_day):
@@ -318,7 +321,7 @@ def _cmd_listen(args: argparse.Namespace) -> int:
     print(f"listening on {where} (ctrl-c to stop)", file=sys.stderr)
 
     if args.tracks:
-        rows: Iterable[Dict[str, Any]] = _track_rows(
+        rows: Iterable[dict[str, Any]] = _track_rows(
             messages, day=None, resolve_day=True, callsign=args.callsign
         )
     else:
@@ -431,7 +434,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     """Entry point for the ``pyasteryx`` command."""
     args = build_parser().parse_args(argv)
     try:

@@ -25,7 +25,7 @@ import json
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Bits short-names that carry no decodable information.
 _SKIP_NAMES = {"fx", "spare", "sb", "spare bits"}
@@ -35,9 +35,9 @@ def _norm_name(el: ET.Element) -> str:
     return (el.findtext("BitsShortName") or "").strip()
 
 
-def _convert_bits(fixed_el: ET.Element, skip_fx: bool) -> List[Dict[str, Any]]:
+def _convert_bits(fixed_el: ET.Element, skip_fx: bool) -> list[dict[str, Any]]:
     """Convert the ``<Bits>`` children of a ``<Fixed>`` element into field dicts."""
-    fields: List[Dict[str, Any]] = []
+    fields: list[dict[str, Any]] = []
     for bits in fixed_el.findall("Bits"):
         is_fx = bits.attrib.get("fx") == "1"
         if skip_fx and is_fx:
@@ -56,7 +56,7 @@ def _convert_bits(fixed_el: ET.Element, skip_fx: bool) -> List[Dict[str, Any]]:
             a, b = int(bits.attrib["from"]), int(bits.attrib["to"])
             hi, lo = max(a, b), min(a, b)
 
-        field: Dict[str, Any] = {"name": name, "from": hi, "to": lo}
+        field: dict[str, Any] = {"name": name, "from": hi, "to": lo}
 
         encode = bits.attrib.get("encode")
         if encode == "signed":
@@ -78,7 +78,7 @@ def _convert_bits(fixed_el: ET.Element, skip_fx: bool) -> List[Dict[str, Any]]:
 
 # A Mode S BDS register: 7 octets (56 bits) of MB data plus a one-octet
 # BDS1/BDS2 address, per I0xx/250 in every category that carries Mode S MB data.
-def _bds_block() -> tuple[int, List[Dict[str, Any]]]:
+def _bds_block() -> tuple[int, list[dict[str, Any]]]:
     return 8, [
         {"name": "MB", "from": 64, "to": 9, "encode": "hex"},
         {"name": "BDS1", "from": 8, "to": 5},
@@ -86,7 +86,7 @@ def _bds_block() -> tuple[int, List[Dict[str, Any]]]:
     ]
 
 
-def _repetition_block(el: ET.Element) -> tuple[int, List[Dict[str, Any]]]:
+def _repetition_block(el: ET.Element) -> tuple[int, list[dict[str, Any]]]:
     """Return (octet length, fields) for the block a Repetitive/BDS item repeats."""
     if el.tag == "BDS":
         return _bds_block()
@@ -95,7 +95,7 @@ def _repetition_block(el: ET.Element) -> tuple[int, List[Dict[str, Any]]]:
     raise ValueError(f"Unsupported repetition block <{el.tag}>")
 
 
-def _convert_format_element(el: ET.Element) -> Dict[str, Any]:
+def _convert_format_element(el: ET.Element) -> dict[str, Any]:
     """Convert one structural element (Fixed/Variable/Repetitive/Compound/Explicit/BDS)."""
     tag = el.tag
 
@@ -125,7 +125,7 @@ def _convert_format_element(el: ET.Element) -> Dict[str, Any]:
     if tag == "Compound":
         children = list(el)
         primary = children[0]  # a <Variable> whose bits' BitsPresence order the subfields
-        presence: List[str] = []
+        presence: list[str] = []
         for fixed in primary.findall("Fixed"):
             for bits in fixed.findall("Bits"):
                 if bits.find("BitsPresence") is not None:
@@ -146,7 +146,7 @@ def _convert_format_element(el: ET.Element) -> Dict[str, Any]:
     raise ValueError(f"Unsupported format element <{tag}>")
 
 
-def _convert_item(cat: int, di: ET.Element) -> Dict[str, Any]:
+def _convert_item(cat: int, di: ET.Element) -> dict[str, Any]:
     raw_id = di.attrib["id"]
     fmt_el = di.find("DataItemFormat")
     if fmt_el is None:
@@ -158,8 +158,8 @@ def _convert_item(cat: int, di: ET.Element) -> Dict[str, Any]:
     return spec
 
 
-def _convert_uap(cat: int, uap_el: ET.Element, known_ids: set) -> List[Optional[str]]:
-    uap: List[Optional[str]] = []
+def _convert_uap(cat: int, uap_el: ET.Element, known_ids: set) -> list[str | None]:
+    uap: list[str | None] = []
     for u in uap_el.findall("UAPItem"):
         frn = u.attrib.get("frn", "")
         if not frn.isdigit():
@@ -176,7 +176,7 @@ def _convert_uap(cat: int, uap_el: ET.Element, known_ids: set) -> List[Optional[
     return uap
 
 
-def convert(xml_path: Path) -> Dict[str, Any]:
+def convert(xml_path: Path) -> dict[str, Any]:
     root = ET.parse(xml_path).getroot()
     cat = int(root.attrib["id"])
     edition = root.attrib.get("ver", "")
@@ -203,7 +203,7 @@ def convert(xml_path: Path) -> Dict[str, Any]:
     }
 
 
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     argv = list(argv)
     # Bundled specs ship minified: indentation is well over half the file size
     # and nothing reads these by eye. Pass --pretty when diffing a conversion.
@@ -224,7 +224,10 @@ def main(argv: List[str]) -> int:
     out_path.write_text(text, encoding="utf-8")
     n_items = len(spec["items"])
     n_frn = sum(1 for x in spec["uap"] if x)
-    print(f"CAT{spec['category']:03d} v{spec['edition']}: {n_items} items, {n_frn} UAP slots -> {out_path}")
+    print(
+        f"CAT{spec['category']:03d} v{spec['edition']}: "
+        f"{n_items} items, {n_frn} UAP slots -> {out_path}"
+    )
     return 0
 
 

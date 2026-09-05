@@ -8,13 +8,14 @@ without ever buffering the whole thing, which is what
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
-from typing import BinaryIO, Iterator, Union
+from typing import BinaryIO
 
 from pyasteryx.exceptions import InvalidLengthError, TruncatedMessageError
 from pyasteryx.parser.header import HEADER_SIZE
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 
 def read_bytes(path: PathLike) -> bytes:

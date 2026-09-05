@@ -7,17 +7,15 @@ the real UAP, so a test exercises exactly the edition the library ships.
 
 from __future__ import annotations
 
-from typing import Dict
-
 from pyasteryx.spec.model import CategorySpec
 
 
-def frn_map(spec: CategorySpec) -> Dict[str, int]:
+def frn_map(spec: CategorySpec) -> dict[str, int]:
     """Return a mapping of item id -> Field Reference Number for a category."""
     return {item_id: idx + 1 for idx, item_id in enumerate(spec.uap) if item_id}
 
 
-def build_block(spec: CategorySpec, items: Dict[str, bytes]) -> bytes:
+def build_block(spec: CategorySpec, items: dict[str, bytes]) -> bytes:
     """Assemble a one-record data block containing ``items`` (id -> raw octets).
 
     The FSPEC is computed from each item's FRN; items are laid out in UAP order.

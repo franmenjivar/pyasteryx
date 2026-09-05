@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import datetime
 
-
 from pyasteryx.timing import SECONDS_PER_DAY, TOD_LSB, DayResolver, to_datetime, to_timedelta
 
 UTC = datetime.timezone.utc

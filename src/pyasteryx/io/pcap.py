@@ -12,12 +12,13 @@ fine.
 from __future__ import annotations
 
 import struct
+from collections.abc import Iterator
 from pathlib import Path
-from typing import BinaryIO, Iterator, Union
+from typing import BinaryIO
 
 from pyasteryx.exceptions import AsteryxError
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 # pcap global-header magic numbers, as read big-endian from the first 4 octets.
 # The canonical value is 0xA1B2C3D4; a byte-swapped value means the writer used

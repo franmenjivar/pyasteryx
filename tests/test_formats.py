@@ -26,8 +26,10 @@ _CATEGORY = {
             "id": "I200/040",
             "format": "compound",
             "subfields": [
-                {"id": "S1", "format": "fixed", "length": 1, "fields": [{"name": "V", "from": 8, "to": 1}]},
-                {"id": "S2", "format": "fixed", "length": 2, "fields": [{"name": "W", "from": 16, "to": 1}]},
+                {"id": "S1", "format": "fixed", "length": 1,
+                 "fields": [{"name": "V", "from": 8, "to": 1}]},
+                {"id": "S2", "format": "fixed", "length": 2,
+                 "fields": [{"name": "W", "from": 16, "to": 1}]},
             ],
         },
     ],

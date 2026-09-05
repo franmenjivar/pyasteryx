@@ -14,8 +14,8 @@ touch.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
 
 from pyasteryx.exceptions import SpecificationError, UnsupportedCategoryError
 from pyasteryx.spec.loader import (
@@ -39,7 +39,7 @@ __all__ = [
 ]
 
 
-def _version_key(edition: str) -> Tuple[int, ...]:
+def _version_key(edition: str) -> tuple[int, ...]:
     """Sort key for an edition string such as ``"2.6"`` or ``"1.21"``."""
     parts = []
     for chunk in edition.split("."):
@@ -67,16 +67,16 @@ class SpecRegistry:
 
     __slots__ = ("_by_cat", "_paths")
 
-    def __init__(self, specs: Optional[Iterable[CategorySpec]] = None) -> None:
+    def __init__(self, specs: Iterable[CategorySpec] | None = None) -> None:
         # category -> {edition -> CategorySpec}, for what has been parsed.
-        self._by_cat: Dict[int, Dict[str, CategorySpec]] = {}
+        self._by_cat: dict[int, dict[str, CategorySpec]] = {}
         # category -> {edition -> Path}, for what is known but not yet parsed.
-        self._paths: Dict[int, Dict[str, Path]] = {}
+        self._paths: dict[int, dict[str, Path]] = {}
         for spec in specs or ():
             self.register(spec)
 
     @classmethod
-    def with_bundled(cls) -> "SpecRegistry":
+    def with_bundled(cls) -> SpecRegistry:
         """Create a registry over every bundled category and edition, lazily.
 
         Only the data directory is scanned; no specification is parsed until it
@@ -97,7 +97,7 @@ class SpecRegistry:
         """
         self._by_cat.setdefault(spec.category, {})[spec.edition] = spec
 
-    def get(self, category: int, edition: Optional[str] = None) -> CategorySpec:
+    def get(self, category: int, edition: str | None = None) -> CategorySpec:
         """Return the spec for ``category`` (and optional ``edition``).
 
         With no edition, the newest known edition is returned. A specification
@@ -134,7 +134,7 @@ class SpecRegistry:
             raise UnsupportedCategoryError(category)
         return editions[-1]
 
-    def editions(self, category: int) -> List[str]:
+    def editions(self, category: int) -> list[str]:
         """Return the known editions for a category, newest last.
 
         Includes editions that have not been parsed yet.
@@ -146,7 +146,7 @@ class SpecRegistry:
         """Return the category numbers known to this registry, parsed or not."""
         return self._by_cat.keys() | self._paths.keys()
 
-    def is_loaded(self, category: int, edition: Optional[str] = None) -> bool:
+    def is_loaded(self, category: int, edition: str | None = None) -> bool:
         """Whether a specification has actually been parsed yet.
 
         Mostly useful for tests and diagnostics; :meth:`get` does the right thing

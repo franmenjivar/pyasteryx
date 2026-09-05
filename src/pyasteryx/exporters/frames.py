@@ -14,14 +14,14 @@ tracks is usually what you want for analysis::
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional, Protocol
-
+from collections.abc import Iterable
+from typing import Any, Protocol
 
 
 class HasToDict(Protocol):
     """Anything that can flatten itself into a row: a Message or a Track."""
 
-    def to_dict(self) -> Dict[str, Any]: ...
+    def to_dict(self) -> dict[str, Any]: ...
 
 
 #: Flattened position keys tried by :func:`to_geojson`, in order, when the
@@ -35,13 +35,13 @@ _POSITION_KEYS = (
 )
 
 
-def _missing(dep: str, extra: str = "export") -> "ModuleNotFoundError":
+def _missing(dep: str, extra: str = "export") -> ModuleNotFoundError:
     return ModuleNotFoundError(
         f"{dep} is required for this exporter. Install it with: pip install 'pyasteryx[{extra}]'"
     )
 
 
-def to_records(messages: Iterable[HasToDict]) -> List[Dict[str, Any]]:
+def to_records(messages: Iterable[HasToDict]) -> list[dict[str, Any]]:
     """Return a list of flat dict rows (via each item's ``to_dict()``)."""
     return [m.to_dict() for m in messages]
 
@@ -84,10 +84,10 @@ def to_parquet(messages: Iterable[HasToDict], path: str) -> None:
 
 def to_geojson(
     messages: Iterable[HasToDict],
-    lat_key: Optional[str] = None,
-    lon_key: Optional[str] = None,
+    lat_key: str | None = None,
+    lon_key: str | None = None,
     properties: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Return a GeoJSON ``FeatureCollection`` of point features.
 
     Records without both coordinates are skipped, which is the normal case for a
@@ -105,7 +105,7 @@ def to_geojson(
     Returns:
         A GeoJSON ``FeatureCollection`` dict, ready for :func:`json.dump`.
     """
-    features: List[Dict[str, Any]] = []
+    features: list[dict[str, Any]] = []
     keys = (lat_key, lon_key) if lat_key and lon_key else None
 
     for msg in messages:
@@ -128,7 +128,7 @@ def to_geojson(
     return {"type": "FeatureCollection", "features": features}
 
 
-def _detect_position_keys(row: Dict[str, Any]) -> Optional[tuple]:
+def _detect_position_keys(row: dict[str, Any]) -> tuple | None:
     """Pick the position keys a row carries, or ``None`` if it has none.
 
     Returns ``None`` rather than latching onto a key pair the row only has as

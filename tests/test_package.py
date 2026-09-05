@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import tomllib
+import re
 from importlib import metadata
 from pathlib import Path
 
@@ -10,10 +10,15 @@ import pyasteryx
 
 
 def test_version_matches_the_project_metadata():
-    """A version bumped in one place and not the other is a broken release."""
+    """A version bumped in one place and not the other is a broken release.
+
+    Read with a regex rather than tomllib, which is 3.11+ while the package
+    supports 3.10.
+    """
     pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
-    declared = tomllib.loads(pyproject.read_text())["project"]["version"]
-    assert pyasteryx.__version__ == declared
+    match = re.search(r'^version\s*=\s*"([^"]+)"', pyproject.read_text(), re.MULTILINE)
+    assert match, "no version found in pyproject.toml"
+    assert pyasteryx.__version__ == match.group(1)
 
 
 def test_installed_distribution_is_named_pyasteryx():

@@ -27,8 +27,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any
 
 from pyasteryx.exceptions import SpecificationError
 from pyasteryx.spec.model import (
@@ -51,7 +52,7 @@ _VALID_FORMATS = {FIXED, EXTENDED, REPETITIVE, COMPOUND, EXPLICIT}
 _CATEGORY_DIR = re.compile(r"^cat(\d+)$")
 
 
-def _field_from_json(raw: Dict[str, Any]) -> FieldSpec:
+def _field_from_json(raw: dict[str, Any]) -> FieldSpec:
     try:
         return FieldSpec(
             name=raw["name"],
@@ -66,11 +67,11 @@ def _field_from_json(raw: Dict[str, Any]) -> FieldSpec:
         raise SpecificationError(f"Field is missing required key {exc}") from exc
 
 
-def _fields_from_json(raws: List[Dict[str, Any]]) -> Tuple[FieldSpec, ...]:
+def _fields_from_json(raws: list[dict[str, Any]]) -> tuple[FieldSpec, ...]:
     return tuple(_field_from_json(f) for f in raws)
 
 
-def _item_from_json(raw: Dict[str, Any]) -> ItemSpec:
+def _item_from_json(raw: dict[str, Any]) -> ItemSpec:
     try:
         item_id = raw["id"]
         fmt = raw["format"]
@@ -119,12 +120,12 @@ def _item_from_json(raw: Dict[str, Any]) -> ItemSpec:
     return ItemSpec(item_id=item_id, name=name, fmt=COMPOUND, subfields=subfields)
 
 
-def category_from_dict(raw: Dict[str, Any]) -> CategorySpec:
+def category_from_dict(raw: dict[str, Any]) -> CategorySpec:
     """Build a :class:`CategorySpec` from an already-parsed JSON mapping."""
     try:
         category = int(raw["category"])
-        uap_raw: List[Optional[str]] = raw["uap"]
-        items_raw: List[Dict[str, Any]] = raw["items"]
+        uap_raw: list[str | None] = raw["uap"]
+        items_raw: list[dict[str, Any]] = raw["items"]
     except KeyError as exc:
         raise SpecificationError(f"Category spec is missing required key {exc}") from exc
 
@@ -158,7 +159,7 @@ def load_category_file(path: Path) -> CategorySpec:
     return category_from_dict(raw)
 
 
-def iter_bundled_paths() -> Iterator[Tuple[int, str, Path]]:
+def iter_bundled_paths() -> Iterator[tuple[int, str, Path]]:
     """Yield ``(category, edition, path)`` for every bundled specification file.
 
     The category and edition come from the path (``cat062/1.18.json``), so this
@@ -177,7 +178,7 @@ def iter_bundled_paths() -> Iterator[Tuple[int, str, Path]]:
             yield category, path.stem, path
 
 
-def load_bundled_categories() -> List[CategorySpec]:
+def load_bundled_categories() -> list[CategorySpec]:
     """Load and parse every bundled category specification, across all editions.
 
     This is the eager counterpart to :func:`iter_bundled_paths`. Prefer

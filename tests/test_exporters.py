@@ -100,7 +100,9 @@ class TestTrackExports:
         sparse = build_block(cat062_spec, {"I062/010": bytes.fromhex("19C8")})
         assert to_geojson(decoder.decode(sparse))["features"] == []
 
-    def test_geojson_does_not_latch_onto_a_sparse_first_record(self, decoder, cat062_spec, cat062_block):
+    def test_geojson_does_not_latch_onto_a_sparse_first_record(
+        self, decoder, cat062_spec, cat062_block
+    ):
         """A positionless first record must not stop later positions exporting."""
         from tests.asterix_builder import build_block
 

@@ -20,7 +20,7 @@ Use :func:`describe` for a single lookup, or index the tables directly::
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 __all__ = ["CAT062", "CAT021", "CAT048", "TABLES", "describe"]
 
@@ -98,7 +98,7 @@ _FLIGHT_STAGE = {0: "unknown", 1: "take-off", 2: "landing", 3: "reserved"}
 
 _SURVEILLANCE_STATUS = {0: "no condition", 1: "permanent alert", 2: "temporary alert", 3: "SPI"}
 
-CAT062: Dict[str, Dict[str, Dict[int, str]]] = {
+CAT062: dict[str, dict[str, dict[int, str]]] = {
     "I062/060": {
         "V": {0: "code validated", 1: "code not validated"},
         "G": {0: "default", 1: "garbled code"},
@@ -129,7 +129,10 @@ CAT062: Dict[str, Dict[str, Dict[int, str]]] = {
         "ADS": {0: "default", 1: "age of ADS-B track exceeds threshold"},
         "SUC": {0: "default", 1: "special used code"},
         "AAC": {0: "default", 1: "assigned Mode A code conflict"},
-        "SDS": {0: "combined", 1: "co-operative only", 2: "non co-operative only", 3: "not defined"},
+        "SDS": {
+            0: "combined", 1: "co-operative only",
+            2: "non co-operative only", 3: "not defined",
+        },
         "EMS": _EMERGENCY,
         "PFT": {0: "no indication", 1: "potential false track"},
         "FPLT": {0: "default", 1: "track created / updated with a flight plan"},
@@ -157,7 +160,10 @@ CAT062: Dict[str, Dict[str, Dict[int, str]]] = {
         "EMC": _EMITTER_CATEGORY,
         "ECAT": _EMITTER_CATEGORY,
         "SAS": {0: "no source information", 1: "source information provided"},
-        "SRC": {0: "unknown", 1: "aircraft altitude", 2: "FCU/MCP selected altitude", 3: "FMS selected altitude"},
+        "SRC": {
+            0: "unknown", 1: "aircraft altitude",
+            2: "FCU/MCP selected altitude", 3: "FMS selected altitude",
+        },
         "MV": {0: "not active", 1: "active"},
         "AH": {0: "not active", 1: "active"},
         "AM": {0: "not active", 1: "active"},
@@ -171,7 +177,7 @@ CAT062: Dict[str, Dict[str, Dict[int, str]]] = {
 
 # --- CAT021: ADS-B Target Reports --------------------------------------------
 
-CAT021: Dict[str, Dict[str, Dict[int, str]]] = {
+CAT021: dict[str, dict[str, dict[int, str]]] = {
     "I021/008": {"ECAT": _EMITTER_CATEGORY},
     "I021/020": {"ECAT": _EMITTER_CATEGORY},
     "I021/040": {
@@ -202,7 +208,7 @@ CAT021: Dict[str, Dict[str, Dict[int, str]]] = {
 
 # --- CAT048: Monoradar Target Reports ----------------------------------------
 
-CAT048: Dict[str, Dict[str, Dict[int, str]]] = {
+CAT048: dict[str, dict[str, dict[int, str]]] = {
     "I048/020": {
         "TYP": {
             0: "no detection",
@@ -219,7 +225,10 @@ CAT048: Dict[str, Dict[str, Dict[int, str]]] = {
         "SPI": {0: "default", 1: "special position identification"},
         "RAB": {0: "report from aircraft transponder", 1: "report from field monitor"},
         "TST": {0: "real target report", 1: "test target report"},
-        "FOE": {0: "no Mode 4 interrogation", 1: "friendly target", 2: "unknown target", 3: "no reply"},
+        "FOE": {
+            0: "no Mode 4 interrogation", 1: "friendly target",
+            2: "unknown target", 3: "no reply",
+        },
     },
     "I048/070": {
         "V": {0: "code validated", 1: "code not validated"},
@@ -234,14 +243,14 @@ CAT048: Dict[str, Dict[str, Dict[int, str]]] = {
 
 
 #: Every table, keyed by ASTERIX category number.
-TABLES: Dict[int, Dict[str, Dict[str, Dict[int, str]]]] = {
+TABLES: dict[int, dict[str, dict[str, dict[int, str]]]] = {
     21: CAT021,
     48: CAT048,
     62: CAT062,
 }
 
 
-def describe(category: int, item_id: str, field: str, value: Any) -> Optional[str]:
+def describe(category: int, item_id: str, field: str, value: Any) -> str | None:
     """Return the meaning of a coded field value, or ``None`` if unknown.
 
     Args:

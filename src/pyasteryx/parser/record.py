@@ -8,8 +8,6 @@ via the category's UAP, then delegates the actual octet decoding to
 
 from __future__ import annotations
 
-from typing import Tuple
-
 from pyasteryx.exceptions import UnsupportedItemError
 from pyasteryx.models import Message
 from pyasteryx.parser.fspec import parse_fspec
@@ -17,7 +15,9 @@ from pyasteryx.parser.items import decode_item
 from pyasteryx.spec.model import CategorySpec
 
 
-def parse_record(spec: CategorySpec, data: memoryview, offset: int, limit: int) -> Tuple[Message, int]:
+def parse_record(
+    spec: CategorySpec, data: memoryview, offset: int, limit: int
+) -> tuple[Message, int]:
     """Parse a single record starting at ``offset``.
 
     Args:

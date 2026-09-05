@@ -13,7 +13,6 @@ first octet). A field therefore spans an inclusive range ``[bit_to, bit_from]``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Tuple
 
 # Supported data-item encodings.
 FIXED = "fixed"
@@ -41,9 +40,9 @@ class FieldSpec:
     bit_from: int
     bit_to: int
     signed: bool = False
-    scale: Optional[float] = None
-    encode: Optional[str] = None
-    unit: Optional[str] = None
+    scale: float | None = None
+    encode: str | None = None
+    unit: str | None = None
 
     @property
     def width(self) -> int:
@@ -62,7 +61,7 @@ class ExtentSpec:
     """
 
     length: int
-    fields: Tuple[FieldSpec, ...]
+    fields: tuple[FieldSpec, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,9 +85,9 @@ class ItemSpec:
     name: str
     fmt: str
     length: int = 0
-    fields: Tuple[FieldSpec, ...] = ()
-    parts: Tuple[ExtentSpec, ...] = ()
-    subfields: Tuple["ItemSpec", ...] = ()
+    fields: tuple[FieldSpec, ...] = ()
+    parts: tuple[ExtentSpec, ...] = ()
+    subfields: tuple[ItemSpec, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,10 +106,10 @@ class CategorySpec:
     category: int
     name: str
     edition: str
-    uap: Tuple[Optional[str], ...]
-    items: Dict[str, ItemSpec] = field(default_factory=dict)
+    uap: tuple[str | None, ...]
+    items: dict[str, ItemSpec] = field(default_factory=dict)
 
-    def item_for_frn(self, frn: int) -> Optional[str]:
+    def item_for_frn(self, frn: int) -> str | None:
         """Return the item id for a Field Reference Number, or ``None``."""
         if 1 <= frn <= len(self.uap):
             return self.uap[frn - 1]

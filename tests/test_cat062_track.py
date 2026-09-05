@@ -15,6 +15,7 @@ from pyasteryx import Track, group_by_track, tracks
 from tests.asterix_builder import build_block
 from tests.conftest import CAT062_TIME_OF_TRACK
 
+
 @pytest.fixture
 def track(decoder, cat062_block) -> Track:
     (message,) = decoder.decode(cat062_block)

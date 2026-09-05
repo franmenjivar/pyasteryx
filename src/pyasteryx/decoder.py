@@ -15,8 +15,9 @@ parser is reimplemented in Rust.
 
 from __future__ import annotations
 
+from collections.abc import Generator, Iterator
 from pathlib import Path
-from typing import BinaryIO, Dict, Generator, Iterator, List, Optional, Union
+from typing import BinaryIO
 
 from pyasteryx.exceptions import DecodeError
 from pyasteryx.io.binary import iter_stream_blocks
@@ -27,7 +28,7 @@ from pyasteryx.parser.header import parse_data_block_header
 from pyasteryx.parser.record import parse_record
 from pyasteryx.spec import SpecRegistry
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 # How to react to a malformed data block.
 ON_ERROR_RAISE = "raise"
@@ -53,14 +54,14 @@ class Decoder:
 
     def __init__(
         self,
-        registry: Optional[SpecRegistry] = None,
-        editions: Optional[Dict[int, str]] = None,
+        registry: SpecRegistry | None = None,
+        editions: dict[int, str] | None = None,
         on_error: str = ON_ERROR_RAISE,
     ) -> None:
         if on_error not in (ON_ERROR_RAISE, ON_ERROR_SKIP):
             raise ValueError(f"on_error must be {ON_ERROR_RAISE!r} or {ON_ERROR_SKIP!r}")
         self._registry = registry if registry is not None else SpecRegistry.with_bundled()
-        self._editions: Dict[int, str] = dict(editions) if editions else {}
+        self._editions: dict[int, str] = dict(editions) if editions else {}
         self._on_error = on_error
         self._errors = 0
 
@@ -80,7 +81,7 @@ class Decoder:
 
     # -- Raw bytes ---------------------------------------------------------
 
-    def iter_messages(self, raw: Union[bytes, bytearray, memoryview]) -> Iterator[Message]:
+    def iter_messages(self, raw: bytes | bytearray | memoryview) -> Iterator[Message]:
         """Lazily yield every record from a buffer of one or more data blocks."""
         data = memoryview(raw)
         offset = 0
@@ -88,7 +89,7 @@ class Decoder:
         while offset < end:
             offset = yield from self._iter_data_block(data, offset)
 
-    def decode(self, raw: Union[bytes, bytearray, memoryview]) -> List[Message]:
+    def decode(self, raw: bytes | bytearray | memoryview) -> list[Message]:
         """Eagerly decode every record from a buffer of one or more data blocks."""
         return list(self.iter_messages(raw))
 
@@ -99,7 +100,7 @@ class Decoder:
         with open(path, "rb") as fh:
             yield from self.iter_stream(fh)
 
-    def decode_file(self, path: PathLike) -> List[Message]:
+    def decode_file(self, path: PathLike) -> list[Message]:
         """Eagerly decode every record from a binary ASTERIX file."""
         return list(self.iter_file(path))
 
@@ -124,7 +125,7 @@ class Decoder:
             # its end, which we don't need here.
             yield from self._iter_data_block(memoryview(block), 0)
 
-    def decode_stream(self, stream: BinaryIO) -> List[Message]:
+    def decode_stream(self, stream: BinaryIO) -> list[Message]:
         """Eagerly decode every record from a binary, readable file-like stream."""
         return list(self.iter_stream(stream))
 
@@ -135,7 +136,7 @@ class Decoder:
         for payload in iter_pcap_payloads(path):
             yield from self.iter_messages(payload)
 
-    def decode_pcap(self, path: PathLike) -> List[Message]:
+    def decode_pcap(self, path: PathLike) -> list[Message]:
         """Eagerly decode every record from a pcap capture."""
         return list(self.iter_pcap(path))
 
@@ -144,11 +145,11 @@ class Decoder:
     def iter_udp(
         self,
         port: int,
-        group: Optional[str] = None,
+        group: str | None = None,
         iface: str = "0.0.0.0",
         bind: str = "",
-        timeout: Optional[float] = None,
-        max_datagrams: Optional[int] = None,
+        timeout: float | None = None,
+        max_datagrams: int | None = None,
     ) -> Iterator[Message]:
         """Lazily yield records from a live UDP feed, unicast or multicast.
 
@@ -185,8 +186,8 @@ class Decoder:
         group: str,
         port: int,
         iface: str = "0.0.0.0",
-        timeout: Optional[float] = None,
-        max_datagrams: Optional[int] = None,
+        timeout: float | None = None,
+        max_datagrams: int | None = None,
     ) -> Iterator[Message]:
         """Lazily yield records from an IP multicast feed.
 
