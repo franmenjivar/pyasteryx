@@ -50,6 +50,22 @@ Pull requests are squash-merged, so the PR title becomes the commit subject on
 `main`. Write it as an imperative sentence: *Fix FSPEC overrun on a truncated
 record*, not *fixed stuff*.
 
+### Branch protection
+
+`main` is protected and the rules apply to everyone, maintainers included:
+a pull request is required, all CI checks must pass, history stays linear, and
+force pushes and branch deletion are refused. There is no way to push straight
+to `main`; the protection is not advisory.
+
+Two things worth knowing if you administer the repository:
+
+- The required checks are pinned **by name**. Adding a new matrix entry is
+  safe, but *removing* one — dropping a Python version, say — leaves a required
+  check that will never report again, and every merge blocks until the required
+  list is updated to match. Change the matrix and the required checks together.
+- The escape hatch is Settings → Branches → *Do not allow bypassing the above
+  settings*. Nothing can permanently lock you out.
+
 ## What a change needs
 
 **Tests.** A bug fix gets a test that fails before it and passes after. A new
@@ -97,3 +113,17 @@ conversions by eye, but commit the minified form.
 The tag triggers the workflow, which runs the full matrix and then publishes to
 PyPI via Trusted Publishing. Creating a GitHub Release from the tag also
 prompts Zenodo to archive the tarball and mint a DOI.
+
+Order matters for a first-time setup:
+
+- **Enable Zenodo before creating the release.** Zenodo only archives releases
+  published after the repository toggle is switched on. Release first and no
+  DOI is minted, and you need a throwaway version to get one.
+- **The PyPI trusted publisher must match the OIDC claims exactly.** The
+  workflow filename is `ci.yml` — registering `ci.yaml` fails with
+  `invalid-publisher`, which reads like a broken setup but is a one-character
+  typo. If a publish fails this way, fix the PyPI entry and re-run the failed
+  job on the existing run; no new tag or release is needed.
+
+After a release, update `CITATION.cff` with the new version DOI. The concept
+DOI never changes.

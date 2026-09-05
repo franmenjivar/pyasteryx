@@ -1,7 +1,8 @@
 # pyasteryx
 
+[![PyPI](https://img.shields.io/pypi/v/pyasteryx)](https://pypi.org/project/pyasteryx/)
 [![CI](https://github.com/franmenjivar/pyasteryx/actions/workflows/ci.yml/badge.svg)](https://github.com/franmenjivar/pyasteryx/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://pypi.org/project/pyasteryx/)
+[![Python](https://img.shields.io/pypi/pyversions/pyasteryx)](https://pypi.org/project/pyasteryx/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22382473.svg)](https://doi.org/10.5281/zenodo.22382473)
 
