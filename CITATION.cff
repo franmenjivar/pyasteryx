@@ -11,6 +11,14 @@ authors:
   - family-names: Menjivar
     given-names: Erick
     orcid: "https://orcid.org/0009-0008-9056-0701"
+doi: "10.5281/zenodo.22382473"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.22382473"
+    description: Concept DOI, resolving to the newest release.
+  - type: doi
+    value: "10.5281/zenodo.22382474"
+    description: Version DOI for v0.3.0.
 repository-code: "https://github.com/franmenjivar/pyasteryx"
 url: "https://github.com/franmenjivar/pyasteryx"
 license: MIT

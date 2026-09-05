@@ -35,6 +35,14 @@ def test_citation_records_the_orcid():
     assert "https://orcid.org/0009-0008-9056-0701" in citation
 
 
+def test_citation_records_the_zenodo_dois():
+    """The concept DOI must stay put: it is what the README badge and any
+    published citation resolve through."""
+    citation = (Path(__file__).resolve().parent.parent / "CITATION.cff").read_text()
+    assert 'doi: "10.5281/zenodo.22382473"' in citation, "concept DOI changed or was removed"
+    assert "10.5281/zenodo.22382474" in citation, "v0.3.0 version DOI missing"
+
+
 def test_installed_distribution_is_named_pyasteryx():
     assert metadata.version("pyasteryx") == pyasteryx.__version__
 
