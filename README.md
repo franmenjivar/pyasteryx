@@ -3,6 +3,7 @@
 [![CI](https://github.com/franmenjivar/pyasteryx/actions/workflows/ci.yml/badge.svg)](https://github.com/franmenjivar/pyasteryx/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](https://pypi.org/project/pyasteryx/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22382473.svg)](https://doi.org/10.5281/zenodo.22382473)
 
 A fast, dependency-free, **specification-driven** decoder for EUROCONTROL
 **ASTERIX** surveillance data — built for Air Traffic Management research,
@@ -480,12 +481,20 @@ If you use pyasteryx in research, please cite it. GitHub reads
 **Cite this repository** on the repository page.
 
 ```
-Menjivar, E. (2026). pyasteryx (version 0.3.0).
-https://github.com/franmenjivar/pyasteryx
+Menjivar, E. (2026). pyasteryx (version 0.3.0). Zenodo.
+https://doi.org/10.5281/zenodo.22382474
 ```
 
-Each release is archived on Zenodo with its own DOI, so you can cite the exact
-version you ran.
+Every release is archived on Zenodo. Two DOIs exist and they mean different
+things:
+
+| DOI | Resolves to | Use it when |
+|---|---|---|
+| [`10.5281/zenodo.22382473`](https://doi.org/10.5281/zenodo.22382473) | always the newest release | citing the project in general |
+| [`10.5281/zenodo.22382474`](https://doi.org/10.5281/zenodo.22382474) | v0.3.0, permanently | citing the exact version you ran |
+
+For a paper, prefer the version DOI: it is what makes your result
+reproducible. The badge above points at the concept DOI.
 
 ## License
 
