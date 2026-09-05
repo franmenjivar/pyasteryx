@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+
+# Build artefacts
+build/
+dist/
+*.whl
+*.tar.gz
+
+# Environments
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Editors
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Local captures — never commit operational surveillance data
+*.pcap
+*.pcapng
+*.cap
+
+# Local planning notes, not part of the library
+library_idea.md

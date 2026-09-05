@@ -1,0 +1,96 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyasteryx"
+version = "0.3.0"
+description = "A fast, specification-driven decoder for EUROCONTROL ASTERIX surveillance data, with first-class CAT062 system-track support."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Erick Menjivar", email = "199fran5@gmail.com" },
+]
+keywords = [
+    "asterix",
+    "eurocontrol",
+    "cat062",
+    "cat021",
+    "cat048",
+    "air-traffic-management",
+    "atm",
+    "surveillance",
+    "radar",
+    "ads-b",
+    "system-track",
+    "pcap",
+    "multicast",
+    "aviation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: System :: Networking :: Monitoring",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+export = [
+    "pandas>=1.5",
+    "pyarrow>=12.0",
+    "polars>=0.19",
+]
+spark = [
+    "pyspark>=3.4",
+    "pandas>=1.5",
+    "pyarrow>=12.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+    "mypy>=1.5",
+    "pandas>=1.5",
+    "pyarrow>=12.0",
+]
+
+[project.scripts]
+pyasteryx = "pyasteryx.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/franmenjivar/pyasteryx"
+Repository = "https://github.com/franmenjivar/pyasteryx"
+Issues = "https://github.com/franmenjivar/pyasteryx/issues"
+Changelog = "https://github.com/franmenjivar/pyasteryx/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyasteryx"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/tools", "/README.md", "/LICENSE", "/CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.mypy]
+python_version = "3.10"
+packages = ["pyasteryx"]
+ignore_missing_imports = true
