@@ -21,6 +21,20 @@ def test_version_matches_the_project_metadata():
     assert pyasteryx.__version__ == match.group(1)
 
 
+def test_citation_version_matches_the_package():
+    """A release archived on Zenodo with a stale CITATION.cff cites the wrong version."""
+    citation = Path(__file__).resolve().parent.parent / "CITATION.cff"
+    match = re.search(r"^version:\s*(\S+)", citation.read_text(), re.MULTILINE)
+    assert match, "no version found in CITATION.cff"
+    assert pyasteryx.__version__ == match.group(1).strip("\"'")
+
+
+def test_citation_records_the_orcid():
+    """The ORCID is what links the archived release to the author's record."""
+    citation = (Path(__file__).resolve().parent.parent / "CITATION.cff").read_text()
+    assert "https://orcid.org/0009-0008-9056-0701" in citation
+
+
 def test_installed_distribution_is_named_pyasteryx():
     assert metadata.version("pyasteryx") == pyasteryx.__version__
 
