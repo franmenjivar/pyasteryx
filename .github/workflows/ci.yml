@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+    # Release tags must trigger the workflow too, otherwise the tag-gated
+    # publish job below can never run.
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
